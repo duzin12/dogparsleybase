@@ -1,18 +1,42 @@
-import { readdir } from "fs/promises"
+import { readdir } from 'fs/promises'
+import path from 'path'
+import { BotClient, BotEvent } from '../types/index'
+import { logger } from '../utils/logger'
+import { fileURLToPath } from 'url'
 
-export async function loadEvents(client: any) {
-  const folders = await readdir("./events")
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-  for (const folder of folders) {
-    const files = await readdir(`./events/${folder}`)
+export async function loadEvents(client: BotClient) {
+  try {
+    const eventsPath = path.join(__dirname, '../events')
+    const folders = await readdir(eventsPath)
 
-    for (const file of files) {
-      const event = await import(`../events/${folder}/${file}`)
-      client.on(event.default.name, (...args: any[]) =>
-        event.default.execute(...args, client)
-      )
+    for (const folder of folders) {
+      const folderPath = path.join(eventsPath, folder)
+      const files = await readdir(folderPath)
+
+      for (const file of files) {
+        if (!file.endsWith('.ts') && !file.endsWith('.js')) continue
+
+        const filePath = path.join(folderPath, file)
+        const eventModule = await import(filePath)
+        const event: BotEvent = eventModule.default
+
+        if (!event.name) {
+          logger.warn(`⚠️  Evento sem name em ${file}`)
+          continue
+        }
+
+        if (event.once) {
+          client.once(event.name, (...args) => event.execute(...args))
+        } else {
+          client.on(event.name, (...args) => event.execute(...args))
+        }
+      }
     }
-  }
 
-  console.log("✅ Eventos carregados")
+    logger.info('✅ Eventos carregados')
+  } catch (error) {
+    logger.error('❌ Erro ao carregar eventos', error as Error)
+  }
 }

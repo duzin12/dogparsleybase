@@ -1,7 +1,12 @@
-export default {
-  name: "ready",
+import { BotEvent, BotClient } from '../../types/index'
+import { logger } from '../../utils/logger'
+
+const ready: BotEvent = {
+  name: 'ready',
   once: true,
-  execute(client: any) {
-    console.log(`🤖 Logado como ${client.user.tag}`)
+  execute(client: BotClient) {
+    logger.info(`✅ Bot logado como ${client.user?.tag}`)
   }
 }
+
+export default ready

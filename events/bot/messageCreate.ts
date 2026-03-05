@@ -1,17 +1,31 @@
-import prefixes from "../../prefixes.json"
+import { BotEvent, BotClient } from '../../types/index'
+import { config } from '../../config'
+import { logger } from '../../utils/logger'
+import { Message } from 'discord.js'
 
-export default {
-  name: "messageCreate",
-  async execute(message: any, client: any) {
+const messageCreate: BotEvent = {
+  name: 'messageCreate',
+  async execute(message: Message, client: BotClient) {
     if (message.author.bot) return
 
-    const prefix = prefixes.default
-    if (!message.content.startsWith(prefix)) return
+    // Prefix commands
+    if (message.content.startsWith(config.prefix)) {
+      const args = message.content.slice(config.prefix.length).trim().split(/ +/)
+      const commandName = args.shift()?.toLowerCase()
 
-    const args = message.content.slice(prefix.length).trim().split(/ +/)
-    const cmd = args.shift()?.toLowerCase()
+      if (!commandName) return
 
-    const command = client.commands.get(cmd)
-    if (command) command.execute(message, args, client)
+      const command = client.commands.get(commandName)
+      if (!command) return
+
+      try {
+        await command.execute(message, args, client)
+      } catch (error) {
+        logger.error(`Erro ao executar comando ${commandName}`, error as Error)
+        message.reply('❌ Erro ao executar comando').catch(() => {})
+      }
+    }
   }
 }
+
+export default messageCreate

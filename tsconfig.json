@@ -3,12 +3,13 @@
     "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "Bundler",
-    "strict": false,
+    "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
     "lib": ["ES2020"],
-    "outDir": "dist"
-  }
+    "outDir": "./dist"
+  },
+  "exclude": ["node_modules"]
 }
