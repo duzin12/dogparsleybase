@@ -28,9 +28,9 @@ export async function loadEvents(client: BotClient) {
         }
 
         if (event.once) {
-          client.once(event.name, (...args) => event.execute(...args))
+          client.once(event.name, (...args) => event.execute(...args, client))
         } else {
-          client.on(event.name, (...args) => event.execute(...args))
+          client.on(event.name, (...args) => event.execute(...args, client))
         }
       }
     }
